@@ -4,4 +4,12 @@
     <string name="menu_nav_item_permission">Permisos</string>
     <string name="menu_nav_item_photo">Fotos</string>
     <string name="menu_nav_item_accounts">Cuentas</string>
+    <string name="radio_button_internet">Tienes Internet.</string>
+    <string name="radio_button_no_internet">No tienes Internet.</string>
+    <string name="radio_button_uses_wifi">Usas Red Wifi.</string>
+    <string name="radio_button_uses_mobile">Usas Red Móvil.</string>
+    <string name="radio_button_uses_other">Usas Otras Redes.</string>
+    <string name="image_view_photo_content_description">Imagen seleccionada.</string>
+    <string name="image_view_add_photo_content_description">Hacer una fotografía.</string>
+    <string name="image_view_select_photo_content_description">Seleccionar una imagen de la galeria.</string>
 </resources>
