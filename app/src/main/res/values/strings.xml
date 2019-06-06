@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Navigation Example</string>
+    <string name="menu_nav_item_main">Inicio</string>
+    <string name="menu_nav_item_permission">Permisos</string>
+    <string name="menu_nav_item_photo">Fotos</string>
+    <string name="menu_nav_item_accounts">Cuentas</string>
+</resources>

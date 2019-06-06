@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:orderInCategory="1"
+        android:title="@string/menu_nav_item_main" />
+    <item
+        android:orderInCategory="2"
+        android:title="@string/menu_nav_item_permission" />
+    <item
+        android:orderInCategory="3"
+        android:title="@string/menu_nav_item_photo" />
+    <item
+        android:orderInCategory="4"
+        android:title="@string/menu_nav_item_accounts" />
+</menu>
