@@ -27,12 +27,11 @@ public class NetworkActivity extends AppCompatActivity {
         rbci.setChecked(hayred);
         rbsi.setChecked(!hayred);
 
-        if (hayred)
-        {
-            RadioButton rbwifi = findViewById(R.id.radioButtonIdUsesWifi);
-            RadioButton rbmovil = findViewById(R.id.radioButtonIdUsesMobile);
-            RadioButton rbo = findViewById(R.id.radioButtonIdUsesOthers);
+        RadioButton rbwifi = findViewById(R.id.radioButtonIdUsesWifi);
+        RadioButton rbmovil = findViewById(R.id.radioButtonIdUsesMobile);
+        RadioButton rbo = findViewById(R.id.radioButtonIdUsesOthers);
 
+        if (hayred) {
             boolean redwifi = isWifiAvailable(this);
             boolean redmovil = hayConexion3G4G(this);
 
@@ -41,6 +40,10 @@ public class NetworkActivity extends AppCompatActivity {
 
             //caso especial, puede haber internet por bridge, ethernet, u otra
             rbo.setChecked(!redmovil&&!redwifi);
+        } else {
+            rbwifi.setChecked(false);
+            rbmovil.setChecked(false);
+            rbo.setChecked(false);
         }
     }
 

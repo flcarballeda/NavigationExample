@@ -1,5 +1,6 @@
 package com.example.navigationexample;
 
+import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -33,8 +34,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public boolean onOptionsItemSelected(MenuItem item) {
         int id_item = item.getItemId();
         switch (id_item) {
-
-
             case android.R.id.home:
                 if (menu_visible) {
                     drawerLayout.closeDrawers();
@@ -50,9 +49,28 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
 
-
         String menu = item.getTitle().toString();
         int npi = item.getOrder();//obtengo el número del punto de interés
+
+        Intent intent = null;
+        switch (npi) {
+            case 1 : {
+                intent = new Intent(this, MainActivity.class);
+            } break;
+            case 2 : {
+                intent = new Intent(this, NetworkActivity.class);
+            } break;
+            case 3 : {
+                intent = new Intent(this, PhotoActivity.class);
+            } break;
+            case 4 : {
+                intent = new Intent( this, AccountsActivity.class);
+            } break;
+            default: {}
+        }
+        if (null != intent) {
+            startActivity( intent);
+        }
 
         Log.d(getClass().getCanonicalName(), "Ha tocado la opción " + menu + " " +npi);
         drawerLayout.closeDrawers();
@@ -60,5 +78,4 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         return false;
     }
-
 }

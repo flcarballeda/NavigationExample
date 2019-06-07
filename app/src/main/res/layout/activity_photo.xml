@@ -38,7 +38,8 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:contentDescription="@string/image_view_add_photo_content_description"
-                app:srcCompat="@drawable/ic_add_a_photo_black_24dp" />
+                app:srcCompat="@drawable/ic_add_a_photo_black_24dp"
+                android:onClick="hacerFoto"/>
 
             <ImageView
                 android:id="@+id/imageView4"
@@ -46,7 +47,8 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:contentDescription="@string/image_view_select_photo_content_description"
-                app:srcCompat="@drawable/ic_image_black_24dp" />
+                app:srcCompat="@drawable/ic_image_black_24dp"
+                android:onClick="seleccionarFoto"/>
 
         </LinearLayout>
 
