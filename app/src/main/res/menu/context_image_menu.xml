@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/borrar_imagen_context"
+        android:iconTint="@android:color/holo_blue_bright"
+        android:orderInCategory="101"
+        android:icon="@drawable/ic_delete_black_24dp"
+        android:title="@string/context_menu_image_borrar" />
+</menu>

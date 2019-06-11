@@ -1,23 +1,34 @@
 package com.example.navigationexample;
 
 import android.Manifest;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
+import android.os.StrictMode;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.ContextMenu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Method;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -36,6 +47,8 @@ public class PhotoActivity extends AppCompatActivity {
     private static final int CODIGO_PETICION_HACER_FOTO = 2001;
     private static final int CODIGO_PETICION_SELECCIONAR_FOTO = 2002;
 
+    private static final String SAVED_NAME = "IMAGEN";
+
     private ImageView imageView;
     private ImageView botonFotos;
     private Uri photoUri;
@@ -52,9 +65,27 @@ public class PhotoActivity extends AppCompatActivity {
 
         usuarioPermitir = true;
         solicitarPermisos(PERMISSIONS, IDENTIFICADORES);
+
+        registerForContextMenu(imageView);
+        if (savedInstanceState != null) {
+            rutaFoto = savedInstanceState.getString(SAVED_NAME, null);
+            if (null != rutaFoto) {
+                File fichero = new File(rutaFoto);
+                if (fichero.isFile() && fichero.canRead() && (0 < fichero.length())) {
+                    photoUri = Uri.fromFile(fichero);
+                }
+            }
+        }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString(SAVED_NAME, getFilePath());
     }
 
     public void solicitarPermisos(String[] permisos, int[] identificador) {
+        // Cada vez que se requiere una solicitud de permisos hay que solicitar todos a la vez
         boolean granted = true;
         for (String permiso : permisos) {
             granted = granted & (ContextCompat.checkSelfPermission(this,
@@ -62,7 +93,6 @@ public class PhotoActivity extends AppCompatActivity {
                     == PackageManager.PERMISSION_GRANTED);
         }
         if (!granted) {
-
             for (int i = 0; i < permisos.length; i++) {
                 String permiso = permisos[i];
                 // Should we show an explanation?
@@ -73,24 +103,24 @@ public class PhotoActivity extends AppCompatActivity {
                     // TODO Show an expanation to the user *asynchronously* -- don't block
                     // this thread waiting for the user's response! After the user
                     // sees the explanation, try again to request the permission.
+                    botonFotos.setEnabled(false);
+                    usuarioPermitir = false;
 
-                } else {
-
+                    // No se puede solicitar cada permiso por separado, hay que solicitarlos siempre
+                    // como bloque.
+//                } else {
                     // No explanation needed, we can request the permission.
-
-                    ActivityCompat.requestPermissions(this,
-                            new String[]{permiso},
-                            identificador[i]);
+//                    ActivityCompat.requestPermissions(this,
+//                            permisos,
+//                            identificador[0]);
                 }
             }
         } else {
-            for (int i = 0; i < permisos.length; i++) {
-                String permiso = permisos[i];
-
-                ActivityCompat.requestPermissions(this,
-                        new String[]{permiso},
-                        identificador[i]);
-            }
+            ActivityCompat.requestPermissions(this,
+                    permisos,
+                    identificador[0]);
+            botonFotos.setEnabled(true);
+            usuarioPermitir = true;
         }
     }
 
@@ -103,6 +133,8 @@ public class PhotoActivity extends AppCompatActivity {
             Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
             photoUri = crearFicheroImagen();
             intent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
+            desactivarModoEstricto(); // Desactivamos el modo estricto pues no nos permite escribir
+            // en el directorio seleccionado.
             startActivityForResult(intent, CODIGO_PETICION_HACER_FOTO);
         }
     }
@@ -131,16 +163,23 @@ public class PhotoActivity extends AppCompatActivity {
         return resultado;
     }
 
+    // Seleccionar una foto
     public void seleccionarFoto(View view) {
         Log.d("MIAPP", "Quiere seleccionar una foto.");
 
         Intent intent = new Intent();
-        intent.setAction(Intent.ACTION_PICK);
+        // con Intent.ACTION_PICK fuerza que sea la Galería, puede que no tenga instalada una app.
+        // intent.setAction(Intent.ACTION_PICK);
+        // con Intent.ACTION_GET_CONTENT pido cualquier app que pueda realizar la acción, como el
+        // FileManager.
+        intent.setAction(Intent.ACTION_GET_CONTENT);
         intent.setType("image/*");
 
         startActivityForResult(intent, CODIGO_PETICION_SELECCIONAR_FOTO);
     }
 
+
+    // Resultado de las acciones solicitadas al sistema
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         Log.d("MIAPP", "Ver el resultado de solicitar el permiso.");
@@ -218,9 +257,15 @@ public class PhotoActivity extends AppCompatActivity {
                 switch (resultCode) {
                     case RESULT_OK: {
                         Log.d("MIAPP", "Me deja hacer la foto.");
-                        this.imageView.setImageURI(photoUri);
-                        imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
-                        sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, photoUri));
+                        File fichero = new File(rutaFoto);
+                        if (fichero.isFile() && fichero.canRead() && (0 < fichero.length())) {
+                            photoUri = Uri.fromFile(fichero);
+                            this.imageView.setImageURI(photoUri);
+                            imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+                            sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, photoUri));
+                        } else {
+                            Log.d("MIAPP", "La foto recibida está vacia o no es accesible.");
+                        }
                     }
                     break;
                     case RESULT_CANCELED: {
@@ -231,5 +276,99 @@ public class PhotoActivity extends AppCompatActivity {
             }
             break;
         }
+    }
+
+    private void desactivarModoEstricto() {
+        if (Build.VERSION.SDK_INT >= 24) {
+            try {
+                Method m = StrictMode.class.getMethod("disableDeathOnFileUriExposure");
+                m.invoke(null);
+            } catch (Exception e) {
+            }
+        }
+    }
+
+    private String getFilePath() {
+        // https://stackoverflow.com/questions/5657411/android-getting-a-file-uri-from-a-content-uri#answer-12603415
+        String filePath = null;
+        if (photoUri != null && "content".equals(photoUri.getScheme())) {
+            Cursor cursor = this.getContentResolver().query(photoUri, new String[]{android.provider.MediaStore.Images.ImageColumns.DATA}, null, null, null);
+            cursor.moveToFirst();
+            filePath = cursor.getString(0);
+            cursor.close();
+        } else {
+            filePath = photoUri.getPath();
+        }
+        Log.d("MIAPP", "Chosen path = " + filePath);
+
+        return filePath;
+    }
+
+    // Gestión del context menú.
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+        if (null != photoUri) {
+            String filePath = getFilePath();
+            File fichero = new File(filePath);
+            if (null != fichero && fichero.isFile() && fichero.canRead()) {
+                super.onCreateContextMenu(menu, v, menuInfo);
+                MenuInflater inflater = getMenuInflater();
+                inflater.inflate(R.menu.context_image_menu, menu);
+            } else {
+                Log.d("MIAPP", "La foto recibida no es accesible.");
+            }
+        } else {
+            Log.d("MIAPP", "No hay foto accesible.");
+        }
+    }
+
+    public boolean onContextItemSelected(MenuItem item) {
+        //find out which menu item was pressed
+        switch (item.getItemId()) {
+            case R.id.borrar_imagen_context:
+                return doBorrarImagen();
+            default:
+                return false;
+        }
+    }
+
+    private boolean doBorrarImagen() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(R.string.dialog_image_borrar)
+                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        Log.d("MIAPP", "Borrar la imagen.");
+                        String filePath = getFilePath();
+                        File fichero = new File(filePath);
+                        fichero.delete();
+                        if (fichero.exists()) {
+                            try {
+                                fichero.getCanonicalFile().delete();
+                            } catch (IOException e) {
+                                Log.e("MIAPP", "No se puede borrar la imagen.", e);
+                            }
+                            if (fichero.exists()) {
+                                getApplicationContext().deleteFile(fichero.getName());
+                            }
+                        }
+                        if (!fichero.exists()) {
+                            imageView.setImageURI(null);
+                            sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, photoUri));
+                            photoUri = null;
+                        } else {
+                            Log.d("MIAPP", "No he logrado borrar la imagen.");
+                        }
+                    }
+                })
+                .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        // User cancelled the dialog
+                        Log.d("MIAPP", "Cancel: Borrar la imagen.");
+                    }
+                });
+        // Create the AlertDialog object
+        builder.create();
+        builder.show();
+
+        return true;
     }
 }
