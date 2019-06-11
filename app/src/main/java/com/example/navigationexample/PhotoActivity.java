@@ -1,8 +1,10 @@
 package com.example.navigationexample;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
@@ -48,6 +50,8 @@ public class PhotoActivity extends AppCompatActivity {
     private static final int CODIGO_PETICION_SELECCIONAR_FOTO = 2002;
 
     private static final String SAVED_NAME = "IMAGEN";
+    private static final String PREF_IMAGEN = "PREFS_IMAGEN";
+    private static final String PREF_FILE = "PREFS_PHOTO";
 
     private ImageView imageView;
     private ImageView botonFotos;
@@ -69,13 +73,27 @@ public class PhotoActivity extends AppCompatActivity {
         registerForContextMenu(imageView);
         if (savedInstanceState != null) {
             rutaFoto = savedInstanceState.getString(SAVED_NAME, null);
-            if (null != rutaFoto) {
-                File fichero = new File(rutaFoto);
-                if (fichero.isFile() && fichero.canRead() && (0 < fichero.length())) {
-                    photoUri = Uri.fromFile(fichero);
-                }
+        } else {
+            SharedPreferences sp = this.getSharedPreferences( PREF_FILE, Context.MODE_PRIVATE);
+            if( null != sp) {
+                rutaFoto = sp.getString( PREF_IMAGEN, null);
             }
         }
+        if (null != rutaFoto) {
+            File fichero = new File(rutaFoto);
+            if (fichero.isFile() && fichero.canRead() && (0 < fichero.length())) {
+                photoUri = Uri.fromFile(fichero);
+            }
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        SharedPreferences sharedPref = this.getSharedPreferences( PREF_FILE, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putString(PREF_IMAGEN, rutaFoto);
+        editor.commit();
     }
 
     @Override
