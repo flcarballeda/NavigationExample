@@ -142,6 +142,57 @@ public class PhotoActivity extends AppCompatActivity {
         }
     }
 
+    // Resultado de las peticiones de permisos solicitadas al sistema
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        Log.d("MIAPP", "Ver el resultado de solicitar el permiso.");
+        switch (requestCode) {
+            case CODIGO_PERMISOS_HACER_FOTO: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                    Log.d("MIAPP", "Tengo permisos para hacer una foto.");
+                    // permission was granted, yay! Do the
+                    // related task you need to do.
+
+                } else {
+
+                    usuarioPermitir = usuarioPermitir & false;
+                    Log.d("MIAPP", "No tengo permisos para hacer una foto.");
+                    botonFotos.setEnabled(false);
+
+                    // TODO permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                }
+                return;
+            }
+            case CODIGO_PERMISOS_ESCRIBIR_EXTERNO: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                    Log.d("MIAPP", "Tengo permisos para hacer una foto.");
+                    // permission was granted, yay! Do the
+                    // related task you need to do.
+
+                } else {
+
+                    usuarioPermitir = usuarioPermitir & false;
+                    Log.d("MIAPP", "No tengo permisos para hacer una foto.");
+                    botonFotos.setEnabled(false);
+
+                    // TODO permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                }
+                return;
+            }
+
+            // other 'case' lines to check for other
+            // PERMISSIONS this app might request
+        }
+    }
+
     public void hacerFoto(View view) {
         Log.d("MIAPP", "Quiere hacer una foto.");
         // CODIGO_PETICION_HACER_FOTO is an
@@ -194,58 +245,6 @@ public class PhotoActivity extends AppCompatActivity {
         intent.setType("image/*");
 
         startActivityForResult(intent, CODIGO_PETICION_SELECCIONAR_FOTO);
-    }
-
-
-    // Resultado de las acciones solicitadas al sistema
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        Log.d("MIAPP", "Ver el resultado de solicitar el permiso.");
-        switch (requestCode) {
-            case CODIGO_PERMISOS_HACER_FOTO: {
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-
-                    Log.d("MIAPP", "Tengo permisos para hacer una foto.");
-                    // permission was granted, yay! Do the
-                    // related task you need to do.
-
-                } else {
-
-                    usuarioPermitir = usuarioPermitir & false;
-                    Log.d("MIAPP", "No tengo permisos para hacer una foto.");
-                    botonFotos.setEnabled(false);
-
-                    // TODO permission denied, boo! Disable the
-                    // functionality that depends on this permission.
-                }
-                return;
-            }
-            case CODIGO_PERMISOS_ESCRIBIR_EXTERNO: {
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-
-                    Log.d("MIAPP", "Tengo permisos para hacer una foto.");
-                    // permission was granted, yay! Do the
-                    // related task you need to do.
-
-                } else {
-
-                    usuarioPermitir = usuarioPermitir & false;
-                    Log.d("MIAPP", "No tengo permisos para hacer una foto.");
-                    botonFotos.setEnabled(false);
-
-                    // TODO permission denied, boo! Disable the
-                    // functionality that depends on this permission.
-                }
-                return;
-            }
-
-            // other 'case' lines to check for other
-            // PERMISSIONS this app might request
-        }
     }
 
     @Override

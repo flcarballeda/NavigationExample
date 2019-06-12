@@ -14,4 +14,6 @@
     <string name="image_view_select_photo_content_description">Seleccionar una imagen de la galeria.</string>
     <string name="context_menu_image_borrar">Borrar la imagen.</string>
     <string name="dialog_image_borrar">Borrar la imagen.</string>
+    <string name="recyclerview_label_cuenta">Cuenta</string>
+    <string name="recyclerview_label_tipo">Tipo</string>
 </resources>
