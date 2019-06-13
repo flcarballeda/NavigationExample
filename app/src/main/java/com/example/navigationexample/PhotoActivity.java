@@ -1,6 +1,8 @@
 package com.example.navigationexample;
 
 import android.Manifest;
+import android.app.Activity;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -24,6 +26,7 @@ import android.view.ContextMenu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageView;
 
 import java.io.File;
@@ -89,17 +92,19 @@ public class PhotoActivity extends AppCompatActivity {
 
     @Override
     protected void onStop() {
-        super.onStop();
         SharedPreferences sharedPref = this.getSharedPreferences( PREF_FILE, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit();
         editor.putString(PREF_IMAGEN, rutaFoto);
         editor.commit();
+
+        super.onStop();
     }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putString(SAVED_NAME, getFilePath());
+        String filePath = getFilePath();
+        outState.putString(SAVED_NAME, filePath);
     }
 
     public void solicitarPermisos(String[] permisos, int[] identificador) {
@@ -257,9 +262,15 @@ public class PhotoActivity extends AppCompatActivity {
                         Log.d("MIAPP", "Me deja seleccionar la foto.");
                         if (null != data) {
                             photoUri = data.getData();
-                            this.imageView.setImageURI(photoUri);
-                            imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
-                        } // TODO No tiene sentido si se ha seleccionado la foto que no vengan datos.
+                            rutaFoto = getFilePath();
+                            File fichero = new File(rutaFoto);
+                            if (fichero.isFile() && fichero.canRead() && (0 < fichero.length())) {
+                                photoUri = Uri.fromFile(fichero);
+
+                                this.imageView.setImageURI(photoUri);
+                                imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+                            }
+                        } // No tiene sentido si se ha seleccionado la foto que no vengan datos.
                     }
                     break;
                     case RESULT_CANCELED: {
@@ -314,7 +325,9 @@ public class PhotoActivity extends AppCompatActivity {
             filePath = cursor.getString(0);
             cursor.close();
         } else {
-            filePath = photoUri.getPath();
+            if( photoUri != null) {
+                filePath = photoUri.getPath();
+            }
         }
         Log.d("MIAPP", "Chosen path = " + filePath);
 
@@ -350,6 +363,7 @@ public class PhotoActivity extends AppCompatActivity {
 
     private boolean doBorrarImagen() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        final Context context = this;
         builder.setMessage(R.string.dialog_image_borrar)
                 .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
@@ -370,7 +384,18 @@ public class PhotoActivity extends AppCompatActivity {
                         if (!fichero.exists()) {
                             imageView.setImageURI(null);
                             sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, photoUri));
-                            photoUri = null;
+                            ContentResolver cr = context.getContentResolver();
+                            Cursor cursor = cr.query(photoUri, new String[]{MediaStore.Images.ImageColumns.DATA}, null, null, null);
+                            if( null != cursor) {
+                                cursor.moveToFirst();
+                                Uri notificationUri = cursor.getNotificationUri();
+                                int number = cr.delete(notificationUri, null, null);
+                                if (0 < number) {
+                                    photoUri = null;
+                                }
+                            } else {
+                                photoUri = null;
+                            }
                         } else {
                             Log.d("MIAPP", "No he logrado borrar la imagen.");
                         }
